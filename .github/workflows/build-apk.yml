@@ -65,6 +65,7 @@ jobs:
       - name: Build debug APK
         run: |
           export PATH="$HOME/.local/bin:$PATH"
+          export ANDROIDMINAPI=24
           cython --version
           buildozer -v android debug
 
