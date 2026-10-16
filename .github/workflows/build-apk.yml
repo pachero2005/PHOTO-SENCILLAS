@@ -58,13 +58,13 @@ jobs:
 
       - name: Install Buildozer
         run: |
-          python -m venv .venv
-          .venv/bin/python -m pip install --upgrade pip
-          .venv/bin/python -m pip install buildozer "cython==0.29.33"
+          python -m pip install --user --upgrade pip
+          python -m pip install --user buildozer "cython==0.29.33"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Build debug APK
         run: |
-          export PATH="$PWD/.venv/bin:$PATH"
+          export PATH="$HOME/.local/bin:$PATH"
           cython --version
           buildozer -v android debug
 
