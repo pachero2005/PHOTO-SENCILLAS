@@ -1,0 +1,73 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "main.py"
+      - "buildozer.spec"
+      - ".github/workflows/build-apk.yml"
+  pull_request:
+    paths:
+      - "main.py"
+      - "buildozer.spec"
+      - ".github/workflows/build-apk.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Android build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            autoconf \
+            automake \
+            cmake \
+            libffi-dev \
+            libltdl-dev \
+            libncurses-dev \
+            libssl-dev \
+            libtool \
+            pkg-config \
+            unzip \
+            zip \
+            zlib1g-dev
+
+      - name: Cache Buildozer downloads
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.buildozer
+            .buildozer
+          key: buildozer-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
+
+      - name: Install Buildozer
+        run: |
+          python -m venv .venv
+          .venv/bin/python -m pip install --upgrade pip
+          .venv/bin/python -m pip install buildozer "cython==0.29.33"
+
+      - name: Build debug APK
+        run: .venv/bin/buildozer -v android debug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: bin/*.apk
+          if-no-files-found: error
